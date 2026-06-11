@@ -1,0 +1,19 @@
+/* Crop-to-fill: only while fullscreen AND fit mode is on. The video is
+   scaled until it covers the whole screen; overflow is cropped (top/bottom
+   for 16:9 content on an ultrawide), never stretched. */
+.html5-video-player.ytfts-active.ytp-fullscreen video.html5-main-video {
+  width: 100vw !important;
+  height: 100vh !important;
+  left: 0 !important;
+  top: 0 !important;
+  object-fit: cover !important;
+}
+
+/* Red underline on the button while fit mode is active. */
+.ytfts-button .ytfts-underline {
+  display: none;
+}
+
+.ytfts-button.ytfts-on .ytfts-underline {
+  display: block;
+}
