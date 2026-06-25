@@ -56,6 +56,9 @@
     }
   }
 
+  // Players where the user wants fill active — persists across F/Esc cycles.
+  const fillDesired = new WeakSet();
+
   function onButtonClick(event) {
     const btn = event.currentTarget;
     const player = btn.closest('.html5-video-player');
@@ -64,12 +67,15 @@
     const turningOn = !player.classList.contains(ACTIVE_CLASS);
     setActive(player, turningOn);
 
-    // Use YouTube's own fullscreen button so all of its fullscreen
-    // handling (masthead hiding, control sizing, etc.) stays intact.
-    const fsBtn = player.querySelector('.ytp-fullscreen-button');
-    const inFullscreen = !!document.fullscreenElement;
-    if (turningOn && !inFullscreen) fsBtn?.click();
-    if (!turningOn && inFullscreen) fsBtn?.click();
+    if (turningOn) {
+      fillDesired.add(player);
+      // Enter fullscreen if not already in it — but never exit it.
+      if (!document.fullscreenElement) {
+        player.querySelector('.ytp-fullscreen-button')?.click();
+      }
+    } else {
+      fillDesired.delete(player);
+    }
   }
 
   function makeButton(fsBtn) {
@@ -99,11 +105,17 @@
     }
   }
 
-  // Leaving fullscreen (Esc, F, or our toggle) always clears the crop.
   document.addEventListener('fullscreenchange', () => {
-    if (document.fullscreenElement) return;
-    for (const player of document.querySelectorAll('.' + ACTIVE_CLASS)) {
-      setActive(player, false);
+    if (document.fullscreenElement) {
+      // Re-entering fullscreen — restore fill for any player that wants it.
+      for (const player of document.querySelectorAll('.html5-video-player')) {
+        if (fillDesired.has(player)) setActive(player, true);
+      }
+    } else {
+      // Leaving fullscreen — clear fill visually but keep the desire.
+      for (const player of document.querySelectorAll('.' + ACTIVE_CLASS)) {
+        setActive(player, false);
+      }
     }
   });
 
